@@ -1,22 +1,20 @@
 package com.umkc.librarymanagementsystem;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
 public class Book {
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String title;
     private String isbn;
 
-
     @ManyToOne
     @JoinColumn(name = "author_id")
-    @JsonIgnore
+    @JsonBackReference // Prevents infinite recursion
     private Author author;
-
 
     public long getId() {
         return id;
@@ -49,10 +47,4 @@ public class Book {
     public void setIsbn(String isbn) {
         this.isbn = isbn;
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-
 }

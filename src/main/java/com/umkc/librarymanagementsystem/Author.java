@@ -1,9 +1,8 @@
 package com.umkc.librarymanagementsystem;
 
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
-import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Author {
@@ -14,7 +13,8 @@ public class Author {
     private String name;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Book> books;
+    @JsonManagedReference // Prevents infinite recursion
+    private Set<Book> books;
 
     public String getName() {
         return name;
@@ -32,12 +32,11 @@ public class Author {
         this.id = id;
     }
 
-    public List<Book> getBooks() {
+    public Set<Book> getBooks() {
         return books;
     }
 
-    public void setBooks(List<Book> books) {
+    public void setBooks(Set<Book> books) {
         this.books = books;
     }
 }
-
