@@ -1,7 +1,5 @@
 package com.umkc.librarymanagementsystem;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,52 +11,65 @@ import java.util.Optional;
 @RequestMapping("/api/books")
 @CrossOrigin(origins = "http://localhost:3000")
 public class BookController {
-    @Autowired
-    private BookService bookService;
+    private final BookService bookService;
 
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
-    @GetMapping("/author")
-    public Optional<Author> getAuthorByBook(@RequestParam String title) {
-        return bookRepository.findAuthorByBookTitle(title);
+    public BookController(BookService bookService, BookRepository bookRepository) {
+        this.bookService = bookService;
+        this.bookRepository = bookRepository;
     }
 
+    /**
+     * ➕ Add a New Book (Requires a valid Author ID)
+     */
     @PostMapping
-    public ResponseEntity<Book> addBook(@RequestBody Book book) {
-        Book savedBook = bookService.addBook(book);
-        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+    public ResponseEntity<?> addBook(@RequestBody BookRequest bookRequest) {
+        try {
+            if (bookRequest.getBook() == null || bookRequest.getAuthorId() == null) {
+                return new ResponseEntity<>("Invalid request: Book and Author ID are required!", HttpStatus.BAD_REQUEST);
+            }
+
+            Book savedBook = bookService.addBook(bookRequest.getBook(), bookRequest.getAuthorId());
+            return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>("Error adding book: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAllBooks();
+    public ResponseEntity<List<Book>> getAllBooks() {
+        List<Book> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable long id) {
-        Book book = bookService.getBookById(id);
-        return ResponseEntity.ok(book);
+
+
+    /**
+     * ✅ Make `BookRequest` Static (Fixes the Jackson error)
+     */
+    public static class BookRequest {
+        private Book book;
+        private Long authorId;
+
+        // Getters and Setters (Required for JSON Parsing)
+        public Book getBook() { return book; }
+        public void setBook(Book book) { this.book = book; }
+
+        public Long getAuthorId() { return authorId; }
+        public void setAuthorId(Long authorId) { this.authorId = authorId; }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable long id) {
-        bookService.deleteBook(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/author")
+    public ResponseEntity<?> getAuthorByBook(@RequestParam String title) {
+        Optional<Author> author = bookRepository.findAuthorByBookTitle(title);
+
+        if (author.isPresent()) {
+            return ResponseEntity.ok(author.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Error: No author found for the book '" + title + "'");
+        }
     }
 
-    @GetMapping("/paginated-sorted")
-    public Page<Book> getBooksPaginatedAndSorted(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "title") String sortBy) {
-        return bookService.getBooksPaginatedAndSorted(page, size, sortBy);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable long id, @RequestBody Book book) {
-        Book updatedBook = bookService.updateBook(id , book);
-        return new ResponseEntity<>(updatedBook, HttpStatus.OK);
-    }
 }
-

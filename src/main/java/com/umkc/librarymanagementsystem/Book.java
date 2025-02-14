@@ -1,6 +1,6 @@
 package com.umkc.librarymanagementsystem;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -8,13 +8,22 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private String title;
     private String isbn;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
-    @JsonBackReference // Prevents infinite recursion
+    @ManyToOne(fetch = FetchType.EAGER) // Ensure authors are loaded with books
+    @JoinColumn(name = "author_id", nullable = false)
+    @JsonManagedReference // 🔹 Fix serialization issue so author appears in JSON
     private Author author;
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
 
     public long getId() {
         return id;
@@ -30,14 +39,6 @@ public class Book {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public Author getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(Author author) {
-        this.author = author;
     }
 
     public String getIsbn() {

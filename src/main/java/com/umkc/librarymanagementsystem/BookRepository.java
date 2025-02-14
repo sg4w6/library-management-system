@@ -7,8 +7,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
+    Optional<Book> findByTitleAndIsbn(String title, String isbn);
 
-    @Query("SELECT b.author FROM Book b WHERE b.title LIKE %:bookTitle%")
-    Optional<Author> findAuthorByBookTitle(@Param("bookTitle") String bookTitle);
+    // 🔹 Corrected query to fetch author by book title
+    @Query("SELECT b.author FROM Book b WHERE LOWER(b.title) = LOWER(:title)")
+    Optional<Author> findAuthorByBookTitle(@Param("title") String title);
 }
-

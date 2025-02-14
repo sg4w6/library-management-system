@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// Define base API URL
+//  Backend API Base URL
 const API_URL = "http://localhost:8080/api";
 
-// Create an Axios instance
+//  Create Axios instance with error handling
 const apiClient = axios.create({
     baseURL: API_URL,
     headers: {
@@ -11,19 +11,18 @@ const apiClient = axios.create({
     },
 });
 
-// Search books by author name
-export const searchBooksByAuthor = async (authorName) => {
-    const response = await axios.get(`${API_URL}/authors/books?name=${authorName}`);
-    return response.data;
+//  Fetch all books
+export const fetchBooks = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/books`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching books:", error.response?.data || error.message);
+        throw new Error(error.response?.data || "Failed to load books");
+    }
 };
 
-// Search author by book title
-export const searchAuthorByBook = async (bookTitle) => {
-    const response = await axios.get(`${API_URL}/books/author?title=${bookTitle}`);
-    return response.data;
-};
-
-// API Functions
+//  Fetch all authors
 export const fetchAuthors = async () => {
     try {
         const response = await apiClient.get("/authors");
@@ -34,16 +33,40 @@ export const fetchAuthors = async () => {
     }
 };
 
-export const fetchBooks = async () => {
+//  Search books by author name
+export const searchBooksByAuthor = async (authorName) => {
     try {
-        const response = await apiClient.get("/books");
+        const response = await apiClient.get(`/authors/books?name=${authorName}`);
         return response.data;
     } catch (error) {
-        console.error("Error fetching books:", error);
+        console.error("Error searching books by author:", error);
         throw error;
     }
 };
 
+//  Search author by book title
+export const searchAuthorByBook = async (bookTitle) => {
+    try {
+        const response = await apiClient.get(`/books/author?title=${bookTitle}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error searching author by book:", error);
+        throw error;
+    }
+};
+
+//  Add a new book (Requires existing author ID)
+export const addBook = async (book, authorId) => {
+    try {
+        const response = await apiClient.post("/books", { book, authorId });
+        return response.data;
+    } catch (error) {
+        console.error("Error adding book:", error);
+        throw error;
+    }
+};
+
+//  Add a new author
 export const addAuthor = async (author) => {
     try {
         const response = await apiClient.post("/authors", author);
@@ -54,12 +77,23 @@ export const addAuthor = async (author) => {
     }
 };
 
-export const addBook = async (book) => {
+//  Delete a book by ID
+export const deleteBook = async (bookId) => {
     try {
-        const response = await apiClient.post("/books", book);
+        await apiClient.delete(`/books/${bookId}`);
+    } catch (error) {
+        console.error("Error deleting book:", error);
+        throw error;
+    }
+};
+
+//  Update a book by ID
+export const updateBook = async (bookId, updatedBook) => {
+    try {
+        const response = await apiClient.put(`/books/${bookId}`, updatedBook);
         return response.data;
     } catch (error) {
-        console.error("Error adding book:", error);
+        console.error("Error updating book:", error);
         throw error;
     }
 };
