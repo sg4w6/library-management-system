@@ -9,11 +9,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/authors")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthorController {
     @Autowired
     private AuthorService authorService;
 
-    @PostMapping
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @GetMapping("/books")
+    public List<Book> getBooksByAuthor(@RequestParam String name) {
+        return authorRepository.findBooksByAuthorName(name);
+    }
+
+        @PostMapping
     public ResponseEntity<Author> addAuthor(@RequestBody Author author) {
         Author savedAuthor = authorService.addAuthor(author);
         return new ResponseEntity<>(savedAuthor, HttpStatus.CREATED);

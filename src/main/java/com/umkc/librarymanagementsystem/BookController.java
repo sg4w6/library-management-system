@@ -7,12 +7,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/books")
+@CrossOrigin(origins = "http://localhost:3000")
 public class BookController {
     @Autowired
     private BookService bookService;
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    @GetMapping("/author")
+    public Optional<Author> getAuthorByBook(@RequestParam String title) {
+        return bookRepository.findAuthorByBookTitle(title);
+    }
 
     @PostMapping
     public ResponseEntity<Book> addBook(@RequestBody Book book) {
