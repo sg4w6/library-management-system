@@ -43,23 +43,6 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
 
-
-
-    /**
-     * ✅ Make `BookRequest` Static (Fixes the Jackson error)
-     */
-    public static class BookRequest {
-        private Book book;
-        private Long authorId;
-
-        // Getters and Setters (Required for JSON Parsing)
-        public Book getBook() { return book; }
-        public void setBook(Book book) { this.book = book; }
-
-        public Long getAuthorId() { return authorId; }
-        public void setAuthorId(Long authorId) { this.authorId = authorId; }
-    }
-
     @GetMapping("/author")
     public ResponseEntity<?> getAuthorByBook(@RequestParam String title) {
         Optional<Author> author = bookRepository.findAuthorByBookTitle(title);
@@ -70,6 +53,46 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Error: No author found for the book '" + title + "'");
         }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateBook(@PathVariable long id, @RequestBody Book book) {
+        System.out.println("📡 Updating Book: ID=" + id + " Data=" + book);
+
+        try {
+            Book updatedBook = bookService.updateBook(id, book);
+            return ResponseEntity.ok(updatedBook);
+        } catch (RuntimeException e) {
+            System.err.println("Error Updating Book: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating book: " + e.getMessage());
+        }
+    }
+
+
+
+
+    /**
+     * 🗑 Delete a Book by ID
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBook(@PathVariable long id) {
+        boolean deleted = bookService.deleteBook(id);
+        if (deleted) {
+            return ResponseEntity.ok("Book deleted successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Book not found.");
+        }
+    }
+
+    public static class BookRequest {
+        private Book book;
+        private Long authorId;
+
+        public Book getBook() { return book; }
+        public void setBook(Book book) { this.book = book; }
+
+        public Long getAuthorId() { return authorId; }
+        public void setAuthorId(Long authorId) { this.authorId = authorId; }
     }
 
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AuthorService {
@@ -31,10 +32,11 @@ public class AuthorService {
         authorRepository.deleteById(id);
     }
 
-    public Author updateAuthor(long id, Author author) {
-        Author authorToUpdate = getAuthorById(id);
-        authorToUpdate.setName(author.getName());
-        authorToUpdate.setBooks(author.getBooks());
-        return authorRepository.save(authorToUpdate);
+    public Optional<Author> updateAuthor(long id, Author updatedAuthor) {
+        return authorRepository.findById(id).map(existingAuthor -> {
+            existingAuthor.setName(updatedAuthor.getName()); // ✅ Update only relevant fields
+            return authorRepository.save(existingAuthor);
+        });
     }
+
 }

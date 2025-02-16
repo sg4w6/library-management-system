@@ -77,7 +77,35 @@ export const addAuthor = async (author) => {
     }
 };
 
-//  Delete a book by ID
+export const updateBook = async (bookId, updatedBook) => {
+    try {
+        console.log("📡 Sending PUT Request: Book ID", bookId, "Data:", updatedBook);
+
+        const response = await axios.put(
+            `http://localhost:8080/api/books/${bookId}`,
+            updatedBook, // ✅ Send as an object (no JSON.stringify)
+            {
+                headers: {
+                    "Content-Type": "application/json", // ✅ Ensure proper headers
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        console.log("✅ Update Successful:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ API Error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+
+
+
+
+
+// 🗑 Delete a Book
 export const deleteBook = async (bookId) => {
     try {
         await apiClient.delete(`/books/${bookId}`);
@@ -87,13 +115,13 @@ export const deleteBook = async (bookId) => {
     }
 };
 
-//  Update a book by ID
-export const updateBook = async (bookId, updatedBook) => {
+// 🆕 Update an Author
+export const updateAuthor = async (authorId, updatedAuthor) => {
     try {
-        const response = await apiClient.put(`/books/${bookId}`, updatedBook);
+        const response = await apiClient.put(`/authors/${authorId}`, updatedAuthor);
         return response.data;
     } catch (error) {
-        console.error("Error updating book:", error);
+        console.error("Error updating author:", error);
         throw error;
     }
 };

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/authors")
@@ -16,6 +17,10 @@ public class AuthorController {
 
     @Autowired
     private AuthorRepository authorRepository;
+
+    public AuthorController(AuthorService authorService) {
+        this.authorService = authorService;
+    }
 
     @GetMapping("/books")
     public List<Book> getBooksByAuthor(@RequestParam String name) {
@@ -47,8 +52,12 @@ public class AuthorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Author> updateAuthor(@PathVariable long id, @RequestBody Author author) {
-        Author updatedAuthor = authorService.updateAuthor(id , author);
-        return new ResponseEntity<>(updatedAuthor, HttpStatus.OK);
+        Optional<Author> updatedAuthor = authorService.updateAuthor(id, author);
+
+        return updatedAuthor
+                .map(ResponseEntity::ok) // ✅ Returns ResponseEntity<Author>
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build()); // ✅ Correct return type
     }
+
 }
 

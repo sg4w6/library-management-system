@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public class BookService {
     }
 
     // Modified: Ensure author exists & prevent duplicate books
-    public Book addBook(Book book, Long authorId) {
+    /* public Book addBook(Book book, Long authorId) {
         // Prevent duplicate books
         Optional<Book> existingBook = bookRepository.findByTitleAndIsbn(book.getTitle(), book.getIsbn());
         if (existingBook.isPresent()) {
@@ -49,12 +50,23 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+     */
+    public Book addBook(Book book, Long authorId) {
+        Optional<Author> author = authorRepository.findById(authorId);
+        if (author.isPresent()) {
+            book.setAuthor(author.get());
+            return bookRepository.save(book);
+        } else {
+            throw new RuntimeException("Author not found with ID: " + authorId);
+        }
+    }
+
     public Page<Book> getBooksPaginatedAndSorted(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         return bookRepository.findAll(pageable);
     }
 
-    public Book updateBook(long id, Book book) {
+    /*public Book updateBook(long id, Book book) {
         Book bookToUpdate = getBookById(id);
         bookToUpdate.setAuthor(book.getAuthor());
         bookToUpdate.setTitle(book.getTitle());
@@ -62,7 +74,24 @@ public class BookService {
         return bookRepository.save(bookToUpdate);
     }
 
-    public void deleteBook(long id) {
-        bookRepository.deleteById(id);
+     */
+
+    public Book updateBook(long id, Book bookDetails) {
+        Book existingBook = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        existingBook.setTitle(bookDetails.getTitle());
+        existingBook.setIsbn(bookDetails.getIsbn());
+
+        return bookRepository.save(existingBook);
+    }
+
+
+    public boolean deleteBook(long id) {
+        if (bookRepository.existsById(id)) {
+            bookRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
